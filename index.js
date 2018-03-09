@@ -1,7 +1,15 @@
 import express from "express";
+
+// Graphql stuff
 import { fileLoader, mergeTypes, mergeResolvers } from "merge-graphql-schemas";
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express";
 import { makeExecutableSchema } from "graphql-tools";
+
+// Join Monster stuff
+import joinMonsterAdapt from "join-monster-graphql-tools-adapter";
+import joinMonsterMetadata from "./joinMonsterMetadata";
+
+// Misc stuff
 import bodyParser from "body-parser";
 import jwt from "jsonwebtoken";
 import path from "path";
@@ -21,6 +29,8 @@ const schema = makeExecutableSchema({
   typeDefs,
   resolvers
 });
+
+joinMonsterAdapt(schema, joinMonsterMetadata);
 
 const addUser = async (req, res, next) => {
   const token = req.headers["x-token"];
@@ -58,6 +68,7 @@ app.use(
   graphqlEndpoint,
   bodyParser.json(),
   graphqlExpress(req => ({
+    debug: true,
     schema,
     context: {
       models,
@@ -71,5 +82,5 @@ app.use(
 app.use("/graphiql", graphiqlExpress({ endpointURL: graphqlEndpoint }));
 
 models.sequelize.sync({}).then(() => {
-  app.listen(8080);
+  app.listen(8082);
 });
